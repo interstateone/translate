@@ -24,7 +24,7 @@ func (s *TranslateSuite) SetUpSuite(c *C) {
 		AuthUrl:      "https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/",
 	}
 
-	filename := "config.json"
+	filename := "test_config.json"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		c.FailNow()
