@@ -46,16 +46,16 @@ func GetToken(c *Config) (token *Token, err error) {
 		return nil, errors.New((*resp).Status)
 	}
 	json.Unmarshal(respBody, &token)
-	token.Timestamp = token.Timestamp.UTC()
+	token.Timestamp = time.Now()
 	return
 }
 
 func (token *Token) Translate(text, from, to string) (result string, err error) {
-	window, err := time.ParseDuration(string(token.ExpiresIn) + "s")
+	window, err := time.ParseDuration(token.ExpiresIn + "s")
 	if err != nil {
 		return "", err
 	}
-	if token.Timestamp.Add(window).Before(token.Timestamp.UTC()) {
+	if token.Timestamp.Add(window).Before(time.Now()) {
 		return "", errors.New("Access token expired")
 	}
 	if text == "" {

@@ -40,6 +40,15 @@ func (s *TranslateSuite) TestGetToken(c *C) {
 	c.Assert(err, IsNil)
 }
 
+func (s *TranslateSuite) TestTokenExpiry(c *C) {
+	token, err := GetToken(&s.Config)
+	c.Assert(err, IsNil)
+
+	token.ExpiresIn = "0"
+	_, err = token.Translate("Not so fast!", "", "fr")
+	c.Assert(err.Error(), Equals, "Access token expired")
+}
+
 func (s *TranslateSuite) TestTranslate(c *C) {
 	token, err := GetToken(&s.Config)
 
