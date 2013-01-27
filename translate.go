@@ -1,4 +1,4 @@
-package bingtranslate
+package translate
 
 import (
 	"bytes"
