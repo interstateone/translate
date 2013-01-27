@@ -5,18 +5,18 @@ A little wrapper for the Bing Translate API
 ## Usage
 
     import (
-        "log"    
+        "log"
         "translate"
     )
-    
+
     myConfig = Config{
     	GrantType:    "client_credentials",
     	ScopeUrl:     "http://api.microsofttranslator.com",
-    	ClientId:     "",
-    	ClientSecret: "",
+    	ClientId:     "YourAppId",
+    	ClientSecret: "YourClientSecret",
     	AuthUrl:      "https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/",
     }
-    
+
     token := translate.GetToken(config)
     youreWhatTheFrenchCall := token.Translate("Les Incompétents", "fr", "en")
     log.Println(youreWhatTheFrenchCall)
