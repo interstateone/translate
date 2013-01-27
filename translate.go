@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -35,7 +34,7 @@ func GetToken(c *Config) (token *Token, err error) {
 
 	resp, err := http.PostForm(c.AuthUrl, values)
 	if err != nil {
-		log.Fatalf("getTokens: %v", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll((*resp).Body)
@@ -91,16 +90,34 @@ func (token *Token) TranslateArray(texts []string, from, to string) (result []st
 	if token.Timestamp.Add(window).Before(token.Timestamp.UTC()) {
 		return nil, errors.New("Access token expired")
 	}
+	if texts == nil {
+		return nil, errors.New("\"texts\" is a required parameter")
+	}
+	if to == "" {
+		return nil, errors.New("\"to\" is a required parameter")
+	}
+
+	type MSString struct {
+		XMLName     xml.Name `xml:"string"`
+		String      string   `xml:",chardata"`
+		StringXMLNS string   `xml:"xmlns,attr"`
+	}
 
 	type Request struct {
 		XMLName xml.Name `xml:"TranslateArrayRequest"`
 		AppId   string
 		From    string
+		Texts   []MSString `xml:"Texts>string"`
+		Options string
 		To      string
-		Texts   []string `xml:"Texts>string"`
 	}
 
-	data, err := xml.Marshal(&Request{From: from, To: to, Texts: texts})
+	msStrings := []MSString{}
+	for _, text := range texts {
+		msStrings = append(msStrings, MSString{String: text, StringXMLNS: "http://schemas.microsoft.com/2003/10/Serialization/Arrays"})
+	}
+
+	data, err := xml.MarshalIndent(&Request{From: from, To: to, Texts: msStrings}, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +125,7 @@ func (token *Token) TranslateArray(texts []string, from, to string) (result []st
 
 	uri := "http://api.microsofttranslator.com/v2/Http.svc/TranslateArray"
 	req, err := http.NewRequest("POST", uri, body)
-	req.Header.Add("Bearer", token.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+token.AccessToken)
 	req.Header.Add("Content-Type", "text/xml")
 	client := http.Client{}
 	resp, err := client.Do(req)
@@ -139,9 +156,8 @@ func (token *Token) TranslateArray(texts []string, from, to string) (result []st
 		return nil, err
 	}
 
-	texts = []string{}
-	for _, result := range response.Responses {
-		texts = append(texts, result.TranslatedText)
+	for _, response := range response.Responses {
+		result = append(result, response.TranslatedText)
 	}
 
 	return

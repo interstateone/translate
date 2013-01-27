@@ -68,3 +68,21 @@ func (s *TranslateSuite) TestTranslate(c *C) {
 	c.Logf("Spanish: %s", spanish)
 	c.Assert(err, IsNil)
 }
+
+func (s *TranslateSuite) TestTranslateArray(c *C) {
+	token, err := GetToken(&s.Config)
+
+	words := []string{"never", "rock", "the", "mic", "only", "Rachmaninoff"}
+
+	french, err := token.TranslateArray(nil, "", "fr")
+	c.Assert(french, IsNil)
+	c.Assert(err.Error(), Equals, "\"texts\" is a required parameter")
+
+	french, err = token.TranslateArray(words, "", "")
+	c.Assert(french, IsNil)
+	c.Assert(err.Error(), Equals, "\"to\" is a required parameter")
+
+	french, err = token.TranslateArray(words, "en", "fr")
+	c.Logf("French: %v", french)
+	c.Assert(err, IsNil)
+}
